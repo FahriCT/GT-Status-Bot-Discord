@@ -1,0 +1,19 @@
+{
+  "name": "growtopia-discord-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord untuk memantau status server Growtopia",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.11.0",
+    "node-fetch": "^2.6.7",
+    "socks-proxy-agent": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "author": "Senvas",
+  "license": "MIT"
+}
