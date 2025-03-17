@@ -10,6 +10,8 @@ const Ryo = new Client({
 });
 
 let Yamada = 0;
+let playerHistory = [];
+let banWaveHistory = [];
 
 Ryo.on('ready', () => {
     console.log(`✅ Bot sudah online sebagai ${Ryo.user.tag}`);
@@ -68,14 +70,10 @@ async function Senvas() {
     const initialData = await fetchGrowtopiaStatus();
     if (initialData) {
         const embed = new EmbedBuilder()
-            .setColor(initialData.playerCount > 0 ? '#00FF00' : '#FF0000')
+            .setColor('#0000FF')
             .setTitle('🌍 **Growtopia Server Status**')
-            .setDescription(`⏰ **Waktu:** ${getCurrentTime()}`)
-            .addFields(
-                { name: '📡 Status', value: initialData.status, inline: true },
-                { name: '👥 Jumlah Pemain', value: initialData.playerCount.toLocaleString(), inline: true }
-            )
-            .setFooter({ text: 'Diperbarui setiap 1 menit' });
+            .setDescription(`⏰ **Waktu:** ${getCurrentTime()}\n\n📡 **Status:**\n${initialData.status}\n\n👥 **Jumlah Pemain**\n${initialData.playerCount.toLocaleString()}`)
+            .setFooter({ text: 'Dexii Store' });
 
         sendMessage(config.channel_id_1, embed);
         Yamada = initialData.playerCount;
@@ -88,27 +86,50 @@ async function Senvas() {
         const change = Yamada - data.playerCount;
         const percentChange = ((change / Yamada) * 100).toFixed(2);
 
+        playerHistory.push({
+            count: data.playerCount,
+            time: Date.now()
+        });
+
+        playerHistory = playerHistory.filter(p => Date.now() - p.time <= 3600000);
+        
+        const avgPlayers = playerHistory.length > 0 
+            ? Math.round(playerHistory.reduce((acc, curr) => acc + curr.count, 0) / playerHistory.length)
+            : data.playerCount;
+
         const embed = new EmbedBuilder()
-            .setColor(data.playerCount > 0 ? '#00FF00' : '#FF0000')
+            .setColor('#0000FF')
             .setTitle('🌍 **Growtopia Server Status**')
-            .setDescription(`⏰ **Waktu:** ${getCurrentTime()}`)
-            .addFields(
-                { name: '📡 Status', value: data.status, inline: true },
-                { name: '👥 Jumlah Pemain', value: `${data.playerCount.toLocaleString()} (${change >= 0 ? '⬆️' : '⬇️'} ${Math.abs(change).toLocaleString()} | ${percentChange}%)`, inline: true }
-            )
-            .setFooter({ text: 'Diperbarui setiap 1 menit' });
+            .setDescription(`⏰ **Waktu:** ${getCurrentTime()}\n\n📡 **Status:**\n${data.status}\n\n👥 **Jumlah Pemain**\n${data.playerCount.toLocaleString()} (${change >= 0 ? '⬆️' : '⬇️'} ${Math.abs(change).toLocaleString()} | ${change >= 0 ? '+' : ''}${percentChange}%)\n\n📊 **Rata-rata 1 Jam**\n${avgPlayers.toLocaleString()} pemain`)
+            .setFooter({ text: 'Dexii Store' });
 
         sendMessage(config.channel_id_1, embed);
 
         if (Yamada > 0 && change >= 1500) {
+            banWaveHistory.push({
+                change: change,
+                percent: percentChange,
+                time: Date.now()
+            });
+            
+
+            banWaveHistory = banWaveHistory.filter(b => Date.now() - b.time <= 10800000);
+            const avgBanWave = banWaveHistory.length > 0
+                ? Math.round(banWaveHistory.reduce((acc, curr) => acc + curr.change, 0) / banWaveHistory.length)
+                : change;
+            const avgBanWavePercent = banWaveHistory.length > 0
+                ? (banWaveHistory.reduce((acc, curr) => acc + parseFloat(curr.percent), 0) / banWaveHistory.length).toFixed(2)
+                : percentChange;
+
             const banWaveEmbed = new EmbedBuilder()
                 .setColor('#FF4500')
-                .setTitle('🚨 **Deteksi Ban Wave!**')
+                .setTitle('🚨 **Ban Wave!**')
                 .setDescription(`⏰ **Waktu:** ${getCurrentTime()}`)
                 .addFields(
-                    { name: '📉 Penurunan Pemain', value: `-${change.toLocaleString()} pemain (-${percentChange}%)`, inline: true }
+                    { name: '📉 Penurunan Pemain', value: `-${change.toLocaleString()} pemain (-${percentChange}%)`, inline: true },
+                    { name: '📊 Rata-rata 3 Jam', value: `-${avgBanWave.toLocaleString()} pemain (-${avgBanWavePercent}%)`, inline: true }
                 )
-                .setFooter({ text: 'Waspadai aktivitas mencurigakan!' });
+                .setFooter({ text: 'Dexii Store' });
 
             sendMessage(config.channel_id_2, banWaveEmbed);
         }
