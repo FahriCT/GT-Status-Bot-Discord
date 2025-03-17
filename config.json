@@ -1,0 +1,6 @@
+{
+  "token": "YOUR_DISCORD_BOT_TOKEN",
+  "proxy": "socks5://username:password@ip:port",
+  "channel_id_1": "chanel_id_for_player",
+  "channel_id_2": "chanel_id_for_ban_waves"
+}
